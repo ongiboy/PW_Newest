@@ -23,16 +23,23 @@ def Trainer(model,  model_optimizer, classifier, classifier_optimizer, train_dl,
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(model_optimizer, 'min')
     if training_mode == 'pre_train':
         print('Pretraining on source dataset')
+        
+        pretrain_loss = []
+
         for epoch in range(1, config.num_epoch + 1):
             # Train and validate
             """Train. In fine-tuning, this part is also trained???"""
-            train_loss = model_pretrain(model, model_optimizer, criterion, train_dl, config, device, training_mode)
+            train_loss = model_pretrain(model, model_optimizer, criterion, train_dl, config, device, training_mode)            
             logger.debug(f'\nPre-training Epoch : {epoch}, Train Loss : {train_loss:.4f}')
+
+            pretrain_loss.append(train_loss.item())
 
         os.makedirs(os.path.join(experiment_log_dir, "saved_models"), exist_ok=True)
         chkpoint = {'model_state_dict': model.state_dict()}
         torch.save(chkpoint, os.path.join(experiment_log_dir, "saved_models", f'ckp_last.pt'))
         print('Pretrained model is stored at folder:{}'.format(experiment_log_dir+'saved_models'+'ckp_last.pt'))
+        
+        logger.debug('loss=%s',pretrain_loss)
 
     """Fine-tuning and Test"""
     if training_mode != 'pre_train':
