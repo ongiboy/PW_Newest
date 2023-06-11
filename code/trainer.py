@@ -27,7 +27,7 @@ def Trainer(model,  model_optimizer, classifier, classifier_optimizer, train_dl,
             # Train and validate
             """Train. In fine-tuning, this part is also trained???"""
             train_loss = model_pretrain(model, model_optimizer, criterion, train_dl, config, device, training_mode)
-            logger.debug(f'\nPre-training Epoch : {epoch}', f'Train Loss : {train_loss:.4f}')
+            logger.debug(f'\nPre-training Epoch : {epoch}, Train Loss : {train_loss:.4f}')
 
         os.makedirs(os.path.join(experiment_log_dir, "saved_models"), exist_ok=True)
         chkpoint = {'model_state_dict': model.state_dict()}
@@ -70,29 +70,6 @@ def Trainer(model,  model_optimizer, classifier, classifier_optimizer, train_dl,
                                                              classifier=classifier, classifier_optimizer=classifier_optimizer)
             performance_list.append(performance)
 
-            """Use KNN as another classifier; it's an alternation of the MLP classifier in function model_test.
-            Experiments show KNN and MLP may work differently in different settings, so here we provide both. """
-            # train classifier: KNN
-            # neigh = KNeighborsClassifier(n_neighbors=5)
-            # neigh.fit(emb_finetune, label_finetune)
-            # knn_acc_train = neigh.score(emb_finetune, label_finetune)
-            # # print('KNN finetune acc:', knn_acc_train)
-            # representation_test = emb_test.detach().cpu().numpy()
-
-            # knn_result = neigh.predict(representation_test)
-            # knn_result_score = neigh.predict_proba(representation_test)
-            # one_hot_label_test = one_hot_encoding(label_test)
-            # # print(classification_report(label_test, knn_result, digits=4))
-            # # print(confusion_matrix(label_test, knn_result))
-            # knn_acc = accuracy_score(label_test, knn_result)
-            # precision = precision_score(label_test, knn_result, average='macro', )
-            # recall = recall_score(label_test, knn_result, average='macro', )
-            # F1 = f1_score(label_test, knn_result, average='macro')
-            # auc = roc_auc_score(one_hot_label_test, knn_result_score, average="macro", multi_class="ovr")
-            # prc = average_precision_score(one_hot_label_test, knn_result_score, average="macro")
-            # print('KNN Testing: Acc=%.4f| Precision = %.4f | Recall = %.4f | F1 = %.4f | AUROC= %.4f | AUPRC=%.4f'%
-            #       (knn_acc, precision, recall, F1, auc, prc))
-            # KNN_f1.append(F1)
         logger.debug("\n################## Best testing performance! #########################")
         performance_array = np.array(performance_list)
         best_performance = performance_array[np.argmax(performance_array[:,0], axis=0)]
