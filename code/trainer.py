@@ -23,7 +23,7 @@ def Trainer(model,  model_optimizer, classifier, classifier_optimizer, train_dl,
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(model_optimizer, 'min')
     if training_mode == 'pre_train':
         print('Pretraining on source dataset')
-        
+
         pretrain_loss = []
 
         for epoch in range(1, config.num_epoch + 1):
@@ -50,10 +50,15 @@ def Trainer(model,  model_optimizer, classifier, classifier_optimizer, train_dl,
         KNN_f1 = []
         global emb_finetune, label_finetune, emb_test, label_test
 
+        finetune_loss = []
+        finetune_acc = []
+        test_loss_list = []
+        test_acc_list = []
+
         for epoch in range(1, config.num_epoch + 1):
             logger.debug(f'\nEpoch : {epoch}')
 
-            valid_loss, emb_finetune, label_finetune, F1 = model_finetune(model, model_optimizer, valid_dl, config,
+            valid_loss, avg_acc, emb_finetune, label_finetune, F1 = model_finetune(model, model_optimizer, valid_dl, config,
                                   device, training_mode, classifier=classifier, classifier_optimizer=classifier_optimizer)
             scheduler.step(valid_loss)
 
@@ -77,15 +82,26 @@ def Trainer(model,  model_optimizer, classifier, classifier_optimizer, train_dl,
                                                              classifier=classifier, classifier_optimizer=classifier_optimizer)
             performance_list.append(performance)
 
+            finetune_loss.append(valid_loss.item())
+            finetune_acc.append(avg_acc.item())
+            test_loss_list.append(test_loss.item())
+            test_acc_list.append(test_acc.item())
+
         logger.debug("\n################## Best testing performance! #########################")
         performance_array = np.array(performance_list)
         best_performance = performance_array[np.argmax(performance_array[:,0], axis=0)]
-        print('Best Testing Performance: Acc=%.4f| Precision = %.4f | Recall = %.4f | F1 = %.4f | AUROC= %.4f '
+        logger.debug('Best Testing Performance: Acc=%.4f| Precision = %.4f | Recall = %.4f | F1 = %.4f | AUROC= %.4f '
               '| AUPRC=%.4f' % (best_performance[0], best_performance[1], best_performance[2], best_performance[3],
                                 best_performance[4], best_performance[5]))
-        print('Best KNN F1', max(KNN_f1))
+        
+        logger.debug("\n################## Saved fine-tune accuracies and losses #########################")
+        logger.debug("\n Finetune_Accuracies=%s", finetune_acc)
+        logger.debug("\n Finetune_Losses=%s", finetune_loss)
+        logger.debug("\n Test_Accuracies=%s", test_acc_list)
+        logger.debug("\n Test_Losses=%s", test_loss_list)
 
     logger.debug("\n################## Training is Done! #########################")
+    
 
 def model_pretrain(model, model_optimizer, criterion, train_loader, config, device, training_mode,):
     total_loss = []
@@ -218,7 +234,7 @@ def model_finetune(model, model_optimizer, val_dl, config, device, training_mode
     print(' Finetune: loss = %.4f| Acc=%.4f | Precision = %.4f | Recall = %.4f | F1 = %.4f| AUROC=%.4f | AUPRC = %.4f'
           % (ave_loss, ave_acc*100, precision * 100, recall * 100, F1 * 100, ave_auc * 100, ave_prc *100))
 
-    return ave_loss, feas, trgs, F1
+    return ave_loss, ave_acc, feas, trgs, F1
 
 
 def model_test(model,  test_dl, config,  device, training_mode, classifier=None, classifier_optimizer=None):
