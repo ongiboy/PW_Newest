@@ -2,5 +2,5 @@ datasets
 **/__pycache__/
 /experiments_logs/
 **/.idea
-hpc/runs/
+hpc/runs/**
 hpc/environments/**
