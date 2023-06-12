@@ -26,7 +26,7 @@ parser.add_argument('--pretrain_dataset', default='SleepEEG', type=str,
 parser.add_argument('--target_dataset', default='Epilepsy', type=str,
                     help='Dataset of choice: Epilepsy, FD_B, Gesture, EMG')
 
-parser.add_argument('--logs_save_dir', default='../experiments_logs', type=str,
+parser.add_argument('--logs_save_dir', default='experiments_logs', type=str,
                     help='saving directory')
 parser.add_argument('--device', default='cpu', type=str,
                     help='cpu or cuda')
